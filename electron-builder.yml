@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: bunnet
+appId: com.smcrow
+productName: Bunnet
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: bunnet
+  executableName: Bunnet
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

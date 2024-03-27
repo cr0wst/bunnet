@@ -3,11 +3,19 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
+import { WindowStateManager } from './WindowStateManager'
+import { RabbitConnection } from './RabbitConnection'
+
+const windowStateManager = new WindowStateManager('main')
+
 function createWindow(): void {
+  const windowState = windowStateManager.getState()
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: windowState.width,
+    height: windowState.height,
+    x: windowState.x,
+    y: windowState.y,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -20,6 +28,8 @@ function createWindow(): void {
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
+
+  windowStateManager.track(mainWindow)
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
@@ -72,3 +82,38 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
+let rabbitConnection: RabbitConnection | null = null
+
+ipcMain.handle('rabbit-connect', async (_, options) => {
+  console.log('Connecting to options', options)
+  rabbitConnection = new RabbitConnection(options)
+  await rabbitConnection.connect()
+
+  return 'connected'
+})
+
+ipcMain.handle('rabbit-list-exchanges', async (_) => {
+  console.log('Listing exchanges')
+  if (!rabbitConnection) {
+    throw new Error('Not connected to RabbitMQ')
+  }
+
+  return await rabbitConnection.listExchanges()
+})
+
+ipcMain.handle('rabbit-add-queue', async (_, { name, exchange }) => {
+  console.log('Adding queue', name, exchange)
+  if (!rabbitConnection) {
+    throw new Error('Not connected to RabbitMQ')
+  }
+
+  return await rabbitConnection.createQueue({ name, exchange })
+})
+
+ipcMain.handle('rabbit-delete-queue', async (_, queue) => {
+  if (!rabbitConnection) {
+    throw new Error('Not connected to RabbitMQ')
+  }
+
+  return await rabbitConnection.deleteQueue(queue)
+})
