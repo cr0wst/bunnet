@@ -1,10 +1,9 @@
 import { writable } from 'svelte/store'
 import type { Connection } from '@common/types'
-import { ulid } from 'ulid'
 
 export const connections = writable<Connection[]>([
   {
-    id: ulid(),
+    id: "localhost-id",
     name: 'Default Localhost Connection',
     url: 'localhost',
     useSsl: false,

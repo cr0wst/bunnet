@@ -4,13 +4,19 @@
   import { selectedConnection } from './stores/connection'
 
   import Logo from './assets/logo.svelte'
+
+  const api = window.api
+  async function disconnect() {
+    await api.rabbit.disconnect()
+    selectedConnection.set(null)
+  }
 </script>
 
 <div class="flex flex-col min-h-screen">
   <!-- header -->
   <div class="sticky z-50 top-0 p-2 bg-primary-950 h-12">
     <div class="flex justify-between items-center h-full">
-      <button class="flex items-center" on:click={() => ($selectedConnection = null)}>
+      <button class="flex items-center" on:click={disconnect}>
         <div class="rounded-full p-1 mr-2 bg-primary-50 flex items-center justify-around">
           <Logo />
         </div>

@@ -5,8 +5,9 @@
   import moment from 'moment'
   import JsonBlock from '../components/JsonBlock.svelte'
   import { queues, selectedQueue } from '../stores/queues'
-  import { ulid } from 'ulid'
   import { onMount } from 'svelte'
+  import AddQueueButton from '../components/AddQueueButton.svelte'
+  import { Trash, Icon } from 'svelte-hero-icons'
   const api = window.api
 
   $: queueMessages = $messages
@@ -27,11 +28,6 @@
     $selectedMessage = null
   }
 
-  async function addQueue() {
-    const queue = await api.rabbit.addQueue(ulid(), $selectedExchange.name)
-    $queues = [...$queues, queue]
-  }
-
   async function deleteQueue(queue) {
     await api.rabbit.deleteQueue(queue)
     $queues = $queues.filter((q) => q !== queue)
@@ -39,7 +35,6 @@
 
   onMount(async () => {
     api.rabbit.onMessage((incoming: any) => {
-      console.log('Received message', incoming)
       const message = {
         exchange: incoming.exchange,
         queue: incoming.queue,
@@ -77,15 +72,14 @@
               <button
                 on:click={() => deleteQueue(queue)}
                 class="text-primary-200 text-xs font-extralight ml-2 group-hover:visible invisible transition-opacity"
-                >x</button
+              >
+                <Icon src={Trash} class="w-4 h-4" solid />
+              </button
               >
             </div>
           </button>
         {/each}
-        <button
-          class="min-w-16 w-16 h-full bg-primary-700 text-primary-200 hover:bg-primary-500 hover:text-primary-50 hover:font-medium transition-all ml-auto"
-          on:click={addQueue}>+</button
-        >
+        <AddQueueButton/>
       </div>
 
       <!-- message list -->

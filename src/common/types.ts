@@ -26,6 +26,7 @@ export type Queue = {
   id: string
   name: string
   exchange: string
+  bindOptions: any
 }
 
 export type RabbitOptions = {

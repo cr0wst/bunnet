@@ -5,8 +5,11 @@ import icon from '../../resources/icon.png?asset'
 
 import { WindowStateManager } from './WindowStateManager'
 import { RabbitConnection } from './RabbitConnection'
+import appConfig from 'electron-settings'
 
 const windowStateManager = new WindowStateManager('main')
+
+let rabbitConnection: RabbitConnection | null = null
 
 function createWindow(): void {
   const windowState = windowStateManager.getState()
@@ -43,6 +46,13 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // Save all of the details for the connection
+  mainWindow.on('close', () => {
+    if (rabbitConnection) {
+      appConfig.setSync(`rabbitConnection.${rabbitConnection.getConnection().id}`, rabbitConnection.getState())
+    }
+  })
 }
 
 // This method will be called when Electron has finished
@@ -58,9 +68,6 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
 
@@ -82,18 +89,41 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
-let rabbitConnection: RabbitConnection | null = null
+ipcMain.handle('connection-save', (_, connection) => {
+  appConfig.setSync(`connection.${connection.id}`, connection)
+})
+
+ipcMain.handle('connection-list', () => {
+  return appConfig.getSync('connection') || {}
+})
+
+ipcMain.handle('connection-delete', (_, id) => {
+  appConfig.unsetSync(`connection.${id}`)
+})
 
 ipcMain.handle('rabbit-connect', async (_, options) => {
-  console.log('Connecting to options', options)
   rabbitConnection = new RabbitConnection(options)
   await rabbitConnection.connect()
 
-  return 'connected'
+  if (appConfig.hasSync(`rabbitConnection.${rabbitConnection.getConnection().id}`)) {
+    const state: any = appConfig.getSync(`rabbitConnection.${rabbitConnection.getConnection().id}`)
+    return await rabbitConnection.loadState(state)
+  }
+
+  return rabbitConnection.getState()
+})
+
+ipcMain.handle('rabbit-disconnect', async () => {
+  if (!rabbitConnection) {
+    throw new Error('Not connected to RabbitMQ')
+  }
+
+  await rabbitConnection.disconnect()
+  appConfig.setSync(`rabbitConnection.${rabbitConnection.getConnection().id}`, rabbitConnection.getState())
+  rabbitConnection = null
 })
 
 ipcMain.handle('rabbit-list-exchanges', async (_) => {
-  console.log('Listing exchanges')
   if (!rabbitConnection) {
     throw new Error('Not connected to RabbitMQ')
   }
@@ -101,13 +131,12 @@ ipcMain.handle('rabbit-list-exchanges', async (_) => {
   return await rabbitConnection.listExchanges()
 })
 
-ipcMain.handle('rabbit-add-queue', async (_, { name, exchange }) => {
-  console.log('Adding queue', name, exchange)
+ipcMain.handle('rabbit-add-queue', async (_, { name, exchange, bindOptions }) => {
   if (!rabbitConnection) {
     throw new Error('Not connected to RabbitMQ')
   }
 
-  return await rabbitConnection.createQueue({ name, exchange })
+  return await rabbitConnection.createQueue({ name, exchange, bindOptions })
 })
 
 ipcMain.handle('rabbit-delete-queue', async (_, queue) => {
