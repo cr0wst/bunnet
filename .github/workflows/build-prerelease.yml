@@ -15,7 +15,8 @@ jobs:
           node-version: 18
       - name: install dependencies
         run: npm install
-      - name: bump prerelease version
-        run: npm version prerelease --preid=develop
+      - run: git config --global user.name "Github Actions"
+      - run: git config --global user.email "github-actions@github.com"
+      - run: npm version $(node -p "require('./package.json').version")-beta.${{ github.sha}}
       - name: build
         run: npm run build:mac-prerelease
