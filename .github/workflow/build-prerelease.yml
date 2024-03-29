@@ -1,0 +1,21 @@
+name: Build Electron Application
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  build_mac:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          ref: develop
+      - uses: actions/setup-node@master
+        with:
+          node-version: 18
+      - name: install dependencies
+        run: npm install
+      - name: bump prerelease version
+        run: npm version prerelease --preid=develop
+      - name: build
+        run: npm run build:mac-prerelease
