@@ -59,7 +59,7 @@
 {/if}
 <script>
   import { queues } from '../stores/queues'
-  import { selectedExchange } from '../stores/exchange'
+  import { selectedExchange } from '../stores/ui'
   import { createEventDispatcher } from 'svelte'
 
   const api = window.api

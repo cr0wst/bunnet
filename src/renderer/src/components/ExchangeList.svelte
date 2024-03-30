@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { exchanges, selectedExchange } from '../stores/exchange'
+  import { exchanges } from '../stores/exchange'
   import type { Exchange } from '@common/types'
   import { EyeSlash, Icon } from 'svelte-hero-icons'
+  import { selectedExchange } from '../stores/ui'
 
   const api = window.api
 

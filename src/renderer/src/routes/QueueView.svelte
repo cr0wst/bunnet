@@ -1,13 +1,15 @@
 <script lang="ts">
-  import { exchanges, selectedExchange } from '../stores/exchange'
-  import { messages, selectedMessage } from '../stores/message'
+  import { exchanges } from '../stores/exchange'
+  import { messages } from '../stores/message'
   import ExchangeList from '../components/ExchangeList.svelte'
   import moment from 'moment'
   import JsonBlock from '../components/JsonBlock.svelte'
-  import { queues, selectedQueue } from '../stores/queues'
+  import { queues } from '../stores/queues'
   import { onDestroy, onMount } from 'svelte'
   import AddQueueButton from '../components/AddQueueButton.svelte'
   import { Trash, Icon } from 'svelte-hero-icons'
+  import { selectedExchange, selectedMessage, selectedQueue } from '../stores/ui'
+
 
   const api = window.api
 

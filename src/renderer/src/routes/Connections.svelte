@@ -1,10 +1,11 @@
 <script lang="ts">
   import { connections, selectedConnection } from '../stores/connection'
-  import { exchanges, selectedExchange } from '../stores/exchange'
+  import { exchanges } from '../stores/exchange'
   import { queues } from '../stores/queues'
   import { ulid } from 'ulid'
   import { onMount } from 'svelte'
   import { Trash, Pencil, Icon } from 'svelte-hero-icons'
+  import { selectedExchange } from '../stores/ui'
 
   const api = window.api
 
