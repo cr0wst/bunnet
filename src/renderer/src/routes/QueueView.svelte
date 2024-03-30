@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { selectedExchange } from '../stores/exchange'
+  import { exchanges, selectedExchange } from '../stores/exchange'
   import { messages, selectedMessage } from '../stores/message'
   import ExchangeList from '../components/ExchangeList.svelte'
   import moment from 'moment'
   import JsonBlock from '../components/JsonBlock.svelte'
   import { queues, selectedQueue } from '../stores/queues'
-  import { onMount } from 'svelte'
+  import { onDestroy, onMount } from 'svelte'
   import AddQueueButton from '../components/AddQueueButton.svelte'
   import { Trash, Icon } from 'svelte-hero-icons'
+
   const api = window.api
 
   $: queueMessages = $messages
@@ -48,6 +49,24 @@
       })
     })
   })
+
+  onDestroy(() => {
+    api.rabbit.removeMessageListener()
+  })
+
+  function unhideExchanges() {
+    exchanges.update((value) => {
+      return value.map((e) => {
+        if (e.hidden) {
+          api.rabbit.unHideExchange(e)
+        }
+        e.hidden = false
+        return e
+      })
+    })
+  }
+
+  $: hiddenExchangeCount = $exchanges.filter((e) => e.hidden).length
 </script>
 
 <div class="flex h-full w-full">
@@ -55,6 +74,12 @@
   <div class="bg-primary-900 w-1/5 flex flex-col">
     <h2 class="text-primary-50 p-2 font-medium text-lg">Exchanges</h2>
     <ExchangeList />
+    {#if hiddenExchangeCount > 0}
+      <div class="text-primary-200 text-xs font-extralight text-center p-2 italic">{hiddenExchangeCount} Exchanges
+        Hidden.
+        <button on:click={unhideExchanges} class="text-primary-50 hover:font-bold">Unhide All</button>
+      </div>
+    {/if}
   </div>
 
   <!-- message section -->
@@ -79,7 +104,9 @@
             </div>
           </button>
         {/each}
-        <AddQueueButton/>
+        {#if $selectedExchange}
+          <AddQueueButton />
+        {/if}
       </div>
 
       <!-- message list -->

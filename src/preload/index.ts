@@ -1,6 +1,6 @@
 import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { Connection, Queue, RabbitOptions } from '../common/types'
+import { Connection, Exchange, Queue, RabbitOptions } from '../common/types'
 
 // Custom APIs for renderer
 const api = {
@@ -25,6 +25,12 @@ const api = {
     async listExchanges() {
       return await electronAPI.ipcRenderer.invoke('rabbit-list-exchanges')
     },
+    async hideExchange(exchange: Exchange) {
+      return await electronAPI.ipcRenderer.invoke('rabbit-exchange-hide', exchange)
+    },
+    async unHideExchange(exchange: Exchange) {
+      return await electronAPI.ipcRenderer.invoke('rabbit-exchange-unhide', exchange)
+    },
     async addQueue(name: string, exchange: string, bindOptions: any) {
       return await electronAPI.ipcRenderer.invoke('rabbit-add-queue', { name, exchange, bindOptions })
     },
@@ -34,7 +40,8 @@ const api = {
     onMessage: (callback) =>
       electronAPI.ipcRenderer.on('rabbit-message-received', (_, args) => {
         callback(args)
-      })
+      }),
+    removeMessageListener: () => electronAPI.ipcRenderer.removeAllListeners('rabbit-message-received')
   }
 }
 

@@ -74,7 +74,7 @@
         // await api.rabbit.disconnect(connection)
         $selectedConnection = null
       }
-      $selectedExchange = $exchanges[0] || null
+      $selectedExchange = $exchanges.find((e) => !e.hidden) || null
     } catch (e) {
       error = `Failed to open connection '${connection.name}'. Check your details and try again.`
     }

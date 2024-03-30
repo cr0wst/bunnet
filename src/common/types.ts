@@ -19,7 +19,9 @@ export type Connection = {
 }
 
 export type Exchange = {
+  connectionId: string
   name: string
+  hidden: boolean
 }
 
 export type Queue = {

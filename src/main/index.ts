@@ -146,3 +146,19 @@ ipcMain.handle('rabbit-delete-queue', async (_, queue) => {
 
   return await rabbitConnection.deleteQueue(queue)
 })
+
+ipcMain.handle('rabbit-exchange-hide', async (_, exchange) => {
+  if (!rabbitConnection) {
+    throw new Error('Not connected to RabbitMQ')
+  }
+
+  return rabbitConnection.hideExchange(exchange)
+})
+
+ipcMain.handle('rabbit-exchange-unhide', async (_, exchange) => {
+  if (!rabbitConnection) {
+    throw new Error('Not connected to RabbitMQ')
+  }
+
+  return rabbitConnection.unhideExchange(exchange)
+})

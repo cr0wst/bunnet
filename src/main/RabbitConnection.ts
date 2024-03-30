@@ -1,4 +1,4 @@
-import { Connection, Queue } from '@common/types'
+import { Connection, Exchange, Queue } from '@common/types'
 import { AMQPChannel, AMQPClient } from '@cloudamqp/amqp-client'
 import { ulid } from 'ulid'
 import axios from 'axios'
@@ -9,6 +9,7 @@ export class RabbitConnection {
   private client: AMQPClient
   private channel: AMQPChannel | null = null
   private queues: Queue[] = []
+  private exchanges: Exchange[] = []
 
   constructor(private connection: Connection) {
     this.client = new AMQPClient(
@@ -44,17 +45,22 @@ export class RabbitConnection {
       }
     })
 
-    const exchanges = response.data
+    // this.exchanges might already have exchanges, so we need to merge some of them.
+    // But, we want to re-create the list of exchanges from the response.
+    this.exchanges = response.data
       .filter((exchange: any) => {
         return exchange.internal === false && exchange.name !== ''
       })
       .map((exchange: any) => {
         return {
-          name: exchange.name
+          name: exchange.name,
+          connectionId: this.connection.id,
+          // Look up the hidden state from the existing exchanges
+          hidden: this.exchanges.find((e) => e.name === exchange.name)?.hidden || false
         }
       })
 
-    return exchanges
+    return this.exchanges
   }
 
   public async createQueue({ name, exchange, bindOptions }) {
@@ -112,17 +118,36 @@ export class RabbitConnection {
     this.queues = this.queues.filter((q) => q.id !== queue.id)
   }
 
-  public async loadState(state: { queues: Queue[] }) {
+  public async loadState(state: { queues: Queue[], exchanges: Exchange[] }) {
     for (const queue of state.queues) {
       await this.createQueue(queue)
     }
 
+    this.exchanges = state.exchanges || []
+
     return this.getState()
+  }
+
+  public hideExchange(exchange: Exchange) {
+    const existingExchange = this.exchanges.find((e) => e.name === exchange.name)
+    if (!existingExchange) {
+      throw new Error('Exchange not found')
+    }
+    existingExchange.hidden = true
+  }
+
+  public unhideExchange(exchange: Exchange) {
+    const existingExchange = this.exchanges.find((e) => e.name === exchange.name)
+    if (!existingExchange) {
+      throw new Error('Exchange not found')
+    }
+    existingExchange.hidden = false
   }
 
   public getState() {
     return {
-      queues: this.queues
+      queues: this.queues,
+      exchanges: this.exchanges
     }
   }
 }
