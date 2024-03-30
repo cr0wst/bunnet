@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { exchanges } from '../stores/exchange'
   import { messages } from '../stores/message'
   import ExchangeList from '../components/ExchangeList.svelte'
   import moment from 'moment'
@@ -7,28 +6,22 @@
   import { queues } from '../stores/queues'
   import { onDestroy, onMount } from 'svelte'
   import AddQueueButton from '../components/AddQueueButton.svelte'
-  import { Trash, Icon } from 'svelte-hero-icons'
+  import { Trash, Icon, BarsArrowUp, BarsArrowDown } from 'svelte-hero-icons'
   import { selectedExchange, selectedMessage, selectedQueue } from '../stores/ui'
+  import type { Message, Queue } from '@common/types'
 
 
   const api = window.api
 
-  $: queueMessages = $messages
-    .filter((message) => message.queue === $selectedQueue?.id)
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-
-  // when the selected exchange changes, select the first queue and message if they exist
-  $: if ($selectedExchange !== null) {
-    $selectedQueue = $queues.find((q) => q.exchange === $selectedExchange.name) || null
+  // when the selected queue changes, load the messages
+  $: if ($selectedQueue) {
+    api.rabbit.getMessages($selectedQueue.id).then(m => {
+      messages.set(m || [])
+      selectedMessage.set(m[0] || null)
+    })
   } else {
-    $selectedQueue = null
-  }
-
-  // when the selected queue changes, select the first message if it exists
-  $: if ($selectedQueue !== null) {
-    $selectedMessage = queueMessages[0] || null
-  } else {
-    $selectedMessage = null
+    messages.set([])
+    selectedMessage.set(null)
   }
 
   async function deleteQueue(queue) {
@@ -37,53 +30,46 @@
   }
 
   onMount(async () => {
-    api.rabbit.onMessage((incoming: any) => {
-      const message = {
-        exchange: incoming.exchange,
-        queue: incoming.queue,
-        timestamp: new Date().toISOString(),
-        headers: incoming.headers,
-        body: incoming.body
+    api.rabbit.onMessage((incoming: Message) => {
+      // Only add the message if it belongs to the selected queue
+      if (incoming.queueId == $selectedQueue.id) {
+        messages.update((value) => {
+          return [incoming, ...value]
+        })
       }
-
-      messages.update((value) => {
-        return [message, ...value]
-      })
     })
+
+    if ($selectedExchange) {
+      $selectedQueue = $queues.find((q) => q.exchange === $selectedExchange.name)
+    }
   })
 
   onDestroy(() => {
     api.rabbit.removeMessageListener()
   })
 
-  function unhideExchanges() {
-    exchanges.update((value) => {
-      return value.map((e) => {
-        if (e.hidden) {
-          api.rabbit.unHideExchange(e)
-        }
-        e.hidden = false
-        return e
-      })
-    })
+  async function selectQueue(queue: Queue) {
+    $selectedQueue = queue
+    // load messages from main
+    messages.set(await api.rabbit.getMessages(queue.id) || [])
   }
 
-  $: hiddenExchangeCount = $exchanges.filter((e) => e.hidden).length
+  let sortDirection = 'asc'
+  function toggleMessageSort() {
+    sortDirection = sortDirection === 'desc' ? 'asc' : 'desc'
+  }
+
+  $: sortedMessages = $messages.sort((a, b) => {
+    if (sortDirection === 'asc') {
+      return a.timestamp.valueOf() - b.timestamp.valueOf()
+    }
+    return b.timestamp.valueOf() - a.timestamp.valueOf()
+  })
 </script>
 
 <div class="flex h-full w-full">
   <!-- exchange list -->
-  <div class="bg-primary-900 w-1/5 flex flex-col">
-    <h2 class="text-primary-50 p-2 font-medium text-lg">Exchanges</h2>
-    <ExchangeList />
-    {#if hiddenExchangeCount > 0}
-      <div class="text-primary-200 text-xs font-extralight text-center p-2 italic">{hiddenExchangeCount} Exchanges
-        Hidden.
-        <button on:click={unhideExchanges} class="text-primary-50 hover:font-bold">Unhide All</button>
-      </div>
-    {/if}
-  </div>
-
+  <ExchangeList />
   <!-- message section -->
   <div class="h-full w-4/5 bg-primary-800 flex flex-col">
     {#if $selectedExchange !== null}
@@ -91,7 +77,7 @@
         {#each $queues.filter((q) => q.exchange === $selectedExchange.name) as queue}
           <button
             class="w-64 h-full bg-primary-700 hover:bg-primary-500 hover:text-primary-50 hover:font-medium transition-all"
-            on:click={() => ($selectedQueue = queue)}
+            on:click={() => selectQueue(queue)}
             class:selected-queue={$selectedQueue === queue}
           >
             <div class="flex items-center justify-between px-2 h-full group">
@@ -112,16 +98,22 @@
       </div>
 
       <!-- message list -->
+      <div class="w-full flex bg-primary-950 text-primary-50 text-xs font-light items-center">
+        <button class="text-left p-1 mr-2 w-1/6 flex justify-between"
+        on:click={toggleMessageSort}
+        >Timestamp <Icon src="{sortDirection === 'desc' ? BarsArrowUp : BarsArrowDown}" class="w-4 h-4" /></button>
+        <div>Message</div>
+      </div>
       <div class="w-full h-1/3 border-b border-b-primary-900 overflow-y-scroll">
-        {#each queueMessages as message}
+        {#each sortedMessages as message}
           <button
             class="fade-right-side flex w-full bg-primary-800 hover:bg-primary-500 hover:text-primary-50 hover:font-medium transition-all items-center"
             on:click={() => ($selectedMessage = message)}
             class:selected={$selectedMessage === message}
           >
             <div
-              class="text-primary-100 text-sm font-medium min-w-fit text-left p-1 mr-2"
-              title={message.timestamp}
+              class="text-primary-100 text-sm font-medium w-1/6 text-left p-1 mr-2"
+              title={message.timestamp.toISOString()}
             >
               {moment(message.timestamp).format('MMM DD, yyyy HH:mm:ss')}
             </div>
@@ -159,7 +151,7 @@
           <div
             class="flex w-full h-full overflow-hidden bg-primary-800 p-1 border-r border-r-primary-900 text-primary-100"
           >
-            {#if $selectedMessage !== null && $selectedMessage.exchange === $selectedExchange.name}
+            {#if $selectedMessage !== null && $selectedMessage.headers}
               <div class="h-full w-full overflow-y-scroll whitespace-pre-wrap font-mono">
                 <JsonBlock data={$selectedMessage.headers} />
               </div>

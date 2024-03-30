@@ -5,7 +5,7 @@
   import { ulid } from 'ulid'
   import { onMount } from 'svelte'
   import { Trash, Pencil, Icon } from 'svelte-hero-icons'
-  import { selectedExchange } from '../stores/ui'
+  import { selectedExchange, selectedQueue } from '../stores/ui'
 
   const api = window.api
 
@@ -76,6 +76,7 @@
         $selectedConnection = null
       }
       $selectedExchange = $exchanges.find((e) => !e.hidden) || null
+      $selectedQueue = $queues.find((q) => q.exchange === $selectedExchange.name) || null
     } catch (e) {
       error = `Failed to open connection '${connection.name}'. Check your details and try again.`
     }

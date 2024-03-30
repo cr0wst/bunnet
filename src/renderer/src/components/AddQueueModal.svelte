@@ -59,7 +59,7 @@
 {/if}
 <script>
   import { queues } from '../stores/queues'
-  import { selectedExchange } from '../stores/ui'
+  import { selectedExchange, selectedQueue } from '../stores/ui'
   import { createEventDispatcher } from 'svelte'
 
   const api = window.api
@@ -118,6 +118,9 @@
       }
       const queue = await api.rabbit.addQueue(name, $selectedExchange.name, bindOptions)
       $queues = [...$queues, queue]
+
+      // Select the new queue
+      $selectedQueue = queue
     }
     cancel()
   }

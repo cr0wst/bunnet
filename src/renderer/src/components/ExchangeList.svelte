@@ -2,33 +2,66 @@
   import { exchanges } from '../stores/exchange'
   import type { Exchange } from '@common/types'
   import { EyeSlash, Icon } from 'svelte-hero-icons'
-  import { selectedExchange } from '../stores/ui'
+  import { selectedExchange, selectedQueue } from '../stores/ui'
+  import { queues } from '../stores/queues'
 
   const api = window.api
 
-  function hideExchange(exchange: Exchange) {
+  async function hideExchange(exchange: Exchange) {
     // Set the store state for immediate result
     exchange.hidden = true
     // Update the rabbit state so it persists
-    api.rabbit.hideExchange(exchange)
+    await api.rabbit.hideExchange(exchange)
 
     // Update the exchange store to trigger reactivity
     $exchanges = $exchanges
+
+    // If the exchange we just hid was selected, select the first one again
+    const nextExchange = $exchanges.find((e) => e.hidden === false)
+    if (nextExchange) {
+      await selectExchange($exchanges.find((e) => e.hidden === false))
+    }
   }
+
+
+  async function unHideExchanges() {
+    $exchanges.filter((e) => e.hidden).forEach((e) => {
+      api.rabbit.unHideExchange(e)
+      e.hidden = false
+    })
+
+    $exchanges = $exchanges
+  }
+
+  async function selectExchange(exchange: Exchange) {
+    $selectedExchange = exchange
+    $selectedQueue = $queues.find((q) => q.exchange === exchange.name)
+  }
+
+  $: hiddenExchangeCount = $exchanges.filter((e) => e.hidden).length
 </script>
 
-{#each $exchanges.filter((e) => !e.hidden) as exchange}
-  <button
-    class="group bg-primary-700 p-2 border-b text-left border-b-primary-800 text-primary-200 hover:cursor-pointer hover:bg-primary-300 hover:text-primary-50 text-xs font-light transition-all flex justify-between"
-    on:click={() => ($selectedExchange = exchange)}
-    class:selected={$selectedExchange === exchange}
-  >
-    {exchange.name}
-    <button on:click={() => hideExchange(exchange)}>
-      <Icon src="{EyeSlash}" class="w-4 h-4 invisible group-hover:visible" />
+<div class="bg-primary-900 w-1/5 flex flex-col">
+  <h2 class="text-primary-50 p-2 font-medium text-lg">Exchanges</h2>
+  {#each $exchanges.filter((e) => !e.hidden) as exchange}
+    <button
+      class="group bg-primary-700 p-2 border-b text-left border-b-primary-800 text-primary-200 hover:cursor-pointer hover:bg-primary-300 hover:text-primary-50 text-xs font-light transition-all flex justify-between"
+      on:click={() => selectExchange(exchange)}
+      class:selected={$selectedExchange === exchange}
+    >
+      {exchange.name}
+      <button on:click={() => hideExchange(exchange)}>
+        <Icon src="{EyeSlash}" class="w-4 h-4 invisible group-hover:visible" />
+      </button>
     </button>
-  </button>
-{/each}
+  {/each}
+  {#if hiddenExchangeCount > 0}
+    <div class="text-primary-200 text-xs font-extralight text-center p-2 italic">{hiddenExchangeCount} Exchanges
+      Hidden.
+      <button on:click={unHideExchanges} class="text-primary-50 hover:font-bold">Unhide All</button>
+    </div>
+  {/if}
+</div>
 
 <style lang="postcss">
   .selected {

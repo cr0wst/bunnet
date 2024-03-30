@@ -3,7 +3,9 @@ import { AMQPChannel, AMQPClient } from '@cloudamqp/amqp-client'
 import { ulid } from 'ulid'
 import axios from 'axios'
 
-import { webContents } from 'electron'
+import { MessageStore } from './messageStore'
+
+const messageStore = new MessageStore()
 
 export class RabbitConnection {
   private client: AMQPClient
@@ -63,9 +65,9 @@ export class RabbitConnection {
     return this.exchanges
   }
 
-  public async createQueue({ name, exchange, bindOptions }) {
+  public async createQueue({ id, name, exchange, bindOptions }) {
     const queueConfig = {
-      id: ulid(),
+      id: id || ulid(),
       name,
       exchange,
       bindOptions
@@ -84,17 +86,15 @@ export class RabbitConnection {
 
     await queue.subscribe({ noAck: true }, (message) => {
       const incoming = {
-        exchange: queueConfig.exchange,
-        queue: queueConfig.id,
+        timestamp: message.properties.timestamp || new Date(),
+        queueId: queueConfig.id,
         headers: message.properties.headers,
         body: this.isValidJson(message.bodyString() || '')
           ? JSON.parse(message.bodyString() || '{}')
           : message.bodyString()
       }
 
-      webContents.getAllWebContents().forEach((wc) => {
-        wc.send('rabbit-message-received', incoming)
-      })
+      messageStore.push(incoming)
     })
 
     return queueConfig
@@ -151,3 +151,4 @@ export class RabbitConnection {
     }
   }
 }
+

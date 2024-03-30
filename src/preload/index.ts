@@ -37,6 +37,9 @@ const api = {
     async deleteQueue(queue: Queue) {
       return await electronAPI.ipcRenderer.invoke('rabbit-delete-queue', queue)
     },
+    async getMessages(queueId: string | undefined) {
+      return await electronAPI.ipcRenderer.invoke('rabbit-get-messages', queueId)
+    },
     onMessage: (callback) =>
       electronAPI.ipcRenderer.on('rabbit-message-received', (_, args) => {
         callback(args)

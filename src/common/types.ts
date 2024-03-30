@@ -1,9 +1,8 @@
 export type Message = {
-  exchange: string
-  queue: string
-  timestamp: string
-  headers: Record<string, any>
-  body: Record<string, any>
+  queueId: string
+  timestamp: Date
+  headers: Record<string, any> | undefined
+  body: any
 }
 
 export type Connection = {

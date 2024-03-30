@@ -4,7 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
 import { WindowStateManager } from './WindowStateManager'
-import { RabbitConnection } from './RabbitConnection'
+import { RabbitConnection } from './rabbit'
 import appConfig from 'electron-settings'
 
 const windowStateManager = new WindowStateManager('main')

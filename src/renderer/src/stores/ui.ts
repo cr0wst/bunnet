@@ -18,3 +18,4 @@ type UiState = {
   selectedQueue: Queue | null
   selectedMessage: Message | null
 }
+
