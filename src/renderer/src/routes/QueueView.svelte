@@ -13,11 +13,18 @@
 
   const api = window.api
 
+  $: sortedMessages = $messages.sort((a, b) => {
+    if (sortDirection === 'asc') {
+      return a.timestamp.valueOf() - b.timestamp.valueOf()
+    }
+    return b.timestamp.valueOf() - a.timestamp.valueOf()
+  })
+
   // when the selected queue changes, load the messages
   $: if ($selectedQueue) {
     api.rabbit.getMessages($selectedQueue.id).then(m => {
       messages.set(m || [])
-      selectedMessage.set(m[0] || null)
+      selectedMessage.set(null)
     })
   } else {
     messages.set([])
@@ -58,13 +65,6 @@
   function toggleMessageSort() {
     sortDirection = sortDirection === 'desc' ? 'asc' : 'desc'
   }
-
-  $: sortedMessages = $messages.sort((a, b) => {
-    if (sortDirection === 'asc') {
-      return a.timestamp.valueOf() - b.timestamp.valueOf()
-    }
-    return b.timestamp.valueOf() - a.timestamp.valueOf()
-  })
 
   function copy(text) {
     api.system.copyToClipboard(text)
