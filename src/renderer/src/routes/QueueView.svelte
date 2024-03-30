@@ -6,7 +6,7 @@
   import { queues } from '../stores/queues'
   import { onDestroy, onMount } from 'svelte'
   import AddQueueButton from '../components/AddQueueButton.svelte'
-  import { Trash, Icon, BarsArrowUp, BarsArrowDown } from 'svelte-hero-icons'
+  import { Trash, Icon, BarsArrowUp, BarsArrowDown, Clipboard } from 'svelte-hero-icons'
   import { selectedExchange, selectedMessage, selectedQueue } from '../stores/ui'
   import type { Message, Queue } from '@common/types'
 
@@ -65,6 +65,10 @@
     }
     return b.timestamp.valueOf() - a.timestamp.valueOf()
   })
+
+  function copy(text) {
+    api.system.copyToClipboard(text)
+  }
 </script>
 
 <div class="flex h-full w-full">
@@ -118,7 +122,7 @@
               {moment(message.timestamp).format('MMM DD, yyyy HH:mm:ss')}
             </div>
             <div
-              class="text-xs font-light font-mono truncate text-primary-200"
+              class="text-xs font-light font-mono truncate text-primary-200 w-5/6 text-left"
               title={JSON.stringify(message.body)}
             >
               {JSON.stringify(message.body).substring(0, 300)}
@@ -133,13 +137,16 @@
             Message Body
           </div>
           <div
-            class="flex w-full h-full overflow-hidden bg-primary-800 p-1 border-r border-r-primary-900"
+            class="flex w-full h-full overflow-hidden bg-primary-800 p-1 border-r border-r-primary-900 relative"
           >
             {#if $selectedMessage !== null}
               <div
-                class="h-full w-full overflow-y-scroll whitespace-pre-wrap font-mono text-primary-100"
+                class="group h-full w-full overflow-y-scroll whitespace-pre-wrap font-mono text-primary-100"
               >
                 <JsonBlock data={$selectedMessage.body} />
+                <button
+                  on:click="{() => copy(JSON.stringify($selectedMessage.body, null, 2))}"
+                  class="absolute bottom-5 right-5 transition-opacity group-hover:opacity-100 opacity-0 duration-500 ease-in hover:scale-110"><Icon src="{Clipboard}" class="h-6 w-6" solid/></button>
               </div>
             {/if}
           </div>
@@ -149,11 +156,14 @@
             Message Headers
           </div>
           <div
-            class="flex w-full h-full overflow-hidden bg-primary-800 p-1 border-r border-r-primary-900 text-primary-100"
+            class="flex w-full h-full overflow-hidden bg-primary-800 p-1 border-r border-r-primary-900 text-primary-100 relative"
           >
             {#if $selectedMessage !== null && $selectedMessage.headers}
-              <div class="h-full w-full overflow-y-scroll whitespace-pre-wrap font-mono">
+              <div class="h-full w-full overflow-y-scroll whitespace-pre-wrap font-mono group">
                 <JsonBlock data={$selectedMessage.headers} />
+                <button
+                  on:click="{() => copy(JSON.stringify($selectedMessage.headers, null, 2))}"
+                  class="absolute bottom-5 right-5 transition-opacity group-hover:opacity-100 opacity-0 duration-500 ease-in hover:scale-110"><Icon src="{Clipboard}" class="h-6 w-6" solid/></button>
               </div>
             {/if}
           </div>

@@ -1,9 +1,14 @@
-import { contextBridge } from 'electron'
+import { contextBridge, clipboard } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { Connection, Exchange, Queue, RabbitOptions } from '../common/types'
 
 // Custom APIs for renderer
 const api = {
+  system: {
+    copyToClipboard(text: string) {
+      return clipboard.writeText(text)
+    }
+  },
   connection: {
     async list(): Promise<Connection[]> {
       return await electronAPI.ipcRenderer.invoke('connection-list')

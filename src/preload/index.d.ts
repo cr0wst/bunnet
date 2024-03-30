@@ -5,6 +5,9 @@ declare global {
   interface Window {
     electron: ElectronAPI
     api: {
+      system: {
+        copyToClipboard(text: string): void
+      },
       connection: {
         list(): Promise<Connection[]>
         save(connection: Connection): Promise<void>
