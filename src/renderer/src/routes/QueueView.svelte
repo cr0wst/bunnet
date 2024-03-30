@@ -2,7 +2,7 @@
   import { messages } from '../stores/message'
   import ExchangeList from '../components/ExchangeList.svelte'
   import moment from 'moment'
-  import JsonBlock from '../components/JsonBlock.svelte'
+  import { JsonView } from '@zerodevx/svelte-json-view'
   import { queues } from '../stores/queues'
   import { onDestroy, onMount } from 'svelte'
   import AddQueueButton from '../components/AddQueueButton.svelte'
@@ -62,6 +62,7 @@
   }
 
   let sortDirection = 'asc'
+
   function toggleMessageSort() {
     sortDirection = sortDirection === 'desc' ? 'asc' : 'desc'
   }
@@ -104,8 +105,10 @@
       <!-- message list -->
       <div class="w-full flex bg-primary-950 text-primary-50 text-xs font-light items-center">
         <button class="text-left p-1 mr-2 w-1/6 flex justify-between"
-        on:click={toggleMessageSort}
-        >Timestamp <Icon src="{sortDirection === 'desc' ? BarsArrowUp : BarsArrowDown}" class="w-4 h-4" /></button>
+                on:click={toggleMessageSort}
+        >Timestamp
+          <Icon src="{sortDirection === 'desc' ? BarsArrowUp : BarsArrowDown}" class="w-4 h-4" />
+        </button>
         <div>Message</div>
       </div>
       <div class="w-full h-1/3 border-b border-b-primary-900 overflow-y-scroll">
@@ -141,12 +144,14 @@
           >
             {#if $selectedMessage !== null}
               <div
-                class="group h-full w-full overflow-y-scroll whitespace-pre-wrap font-mono text-primary-100"
+                class="group h-full w-full overflow-y-scroll whitespace-pre-wrap font-mono text-primary-100 json-wrap"
               >
-                <JsonBlock data={$selectedMessage.body} />
+                <JsonView json={$selectedMessage.body} />
                 <button
                   on:click="{() => copy(JSON.stringify($selectedMessage.body, null, 2))}"
-                  class="absolute bottom-5 right-5 transition-opacity group-hover:opacity-100 opacity-0 duration-500 ease-in hover:scale-110"><Icon src="{Clipboard}" class="h-6 w-6" solid/></button>
+                  class="absolute bottom-5 right-5 transition-opacity group-hover:opacity-75 opacity-0 duration-500 ease-in hover:scale-110">
+                  <Icon src="{Clipboard}" class="h-6 w-6" solid />
+                </button>
               </div>
             {/if}
           </div>
@@ -159,11 +164,13 @@
             class="flex w-full h-full overflow-hidden bg-primary-800 p-1 border-r border-r-primary-900 text-primary-100 relative"
           >
             {#if $selectedMessage !== null && $selectedMessage.headers}
-              <div class="h-full w-full overflow-y-scroll whitespace-pre-wrap font-mono group">
-                <JsonBlock data={$selectedMessage.headers} />
+              <div class="h-full w-full overflow-y-scroll whitespace-pre-wrap font-mono group json-wrap">
+                <JsonView json={$selectedMessage.headers} />
                 <button
                   on:click="{() => copy(JSON.stringify($selectedMessage.headers, null, 2))}"
-                  class="absolute bottom-5 right-5 transition-opacity group-hover:opacity-100 opacity-0 duration-500 ease-in hover:scale-110"><Icon src="{Clipboard}" class="h-6 w-6" solid/></button>
+                  class="absolute bottom-5 right-5 transition-opacity group-hover:opacity-75 opacity-0 duration-500 ease-in hover:scale-110">
+                  <Icon src="{Clipboard}" class="h-6 w-6" solid />
+                </button>
               </div>
             {/if}
           </div>
@@ -184,5 +191,14 @@
 
   .fade-right-side {
     mask-image: linear-gradient(to right, white 95%, transparent 100%);
+  }
+
+  .json-wrap {
+    --jsonBorderLeft: 1px dashed theme('colors.primary.500');
+    --jsonKeyColor: theme('colors.orange.400');
+    --jsonValStringColor: theme('colors.orange.200');
+    --jsonValNumberColor: theme('colors.green.400');
+    --jsonValBooleanColor: theme('colors.purple.400');
+    --jsonBracketHoverBackground: theme('colors.primary.500');
   }
 </style>

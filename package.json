@@ -21,6 +21,7 @@
     "@cloudamqp/amqp-client": "^3.1.1",
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
+    "@zerodevx/svelte-json-view": "^1.0.9",
     "axios": "^1.6.8",
     "electron-settings": "^4.0.2",
     "electron-updater": "^6.1.7"
