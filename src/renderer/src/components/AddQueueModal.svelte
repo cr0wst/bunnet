@@ -108,13 +108,33 @@
         arguments: {}
       }
       if (argumentOne.key && argumentOne.value) {
-        bindOptions.arguments[argumentOne.key] = argumentOne.value
+        // if the argument value is "true" or "false" convert it to a boolean
+        // TODO: Add dropdown for boolean values in the future
+        if (argumentOne.value === 'true') {
+          bindOptions.arguments[argumentOne.key] = true
+        } else if (argumentOne.value === 'false') {
+          bindOptions.arguments[argumentOne.key] = false
+        } else {
+          bindOptions.arguments[argumentOne.key] = argumentOne.value
+        }
       }
       if (argumentTwo.key && argumentTwo.value) {
-        bindOptions.arguments[argumentTwo.key] = argumentTwo.value
+        if (argumentTwo.value === 'true') {
+          bindOptions.arguments[argumentTwo.key] = true
+        } else if (argumentTwo.value === 'false') {
+          bindOptions.arguments[argumentTwo.key] = false
+        } else {
+          bindOptions.arguments[argumentTwo.key] = argumentTwo.value
+        }
       }
       if (argumentThree.key && argumentThree.value) {
-        bindOptions.arguments[argumentThree.key] = argumentThree.value
+        if (argumentThree.value === 'true') {
+          bindOptions.arguments[argumentThree.key] = true
+        } else if (argumentThree.value === 'false') {
+          bindOptions.arguments[argumentThree.key] = false
+        } else {
+          bindOptions.arguments[argumentThree.key] = argumentThree.value
+        }
       }
       const queue = await api.rabbit.addQueue(name, $selectedExchange.name, bindOptions)
       $queues = [...$queues, queue]

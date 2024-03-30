@@ -136,7 +136,7 @@ ipcMain.handle('rabbit-add-queue', async (_, { name, exchange, bindOptions }) =>
     throw new Error('Not connected to RabbitMQ')
   }
 
-  return await rabbitConnection.createQueue({ name, exchange, bindOptions })
+  return await rabbitConnection.createQueue({ id: undefined, name, exchange, bindOptions })
 })
 
 ipcMain.handle('rabbit-delete-queue', async (_, queue) => {
