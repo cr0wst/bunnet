@@ -2,9 +2,10 @@
   import { exchanges } from '../stores/exchange'
   import type { Exchange } from '@common/types'
   import { EyeSlash, Icon } from 'svelte-hero-icons'
-  import { selectedExchange, selectedQueue } from '../stores/ui'
+  import { selectedExchange, selectedMessage, selectedQueue } from '../stores/ui'
   import { queues } from '../stores/queues'
   import PublishMessageButton from './PublishMessageButton.svelte'
+  import { messages } from '../stores/message'
 
   const api = window.api
 
@@ -37,6 +38,8 @@
   async function selectExchange(exchange: Exchange) {
     $selectedExchange = exchange
     $selectedQueue = $queues.find((q) => q.exchange === exchange.name)
+    $messages = []
+    $selectedMessage = null
   }
 
   $: hiddenExchangeCount = $exchanges.filter((e) => e.hidden).length

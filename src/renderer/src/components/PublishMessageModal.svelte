@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { exchanges } from '../stores/exchange'
   import { selectedExchange } from '../stores/ui'
   import { createEventDispatcher } from 'svelte'
@@ -9,7 +9,10 @@
 
   const dispatch = createEventDispatcher()
 
-  $: exchange = $selectedExchange
+  let exchange = ''
+  $: if (!open) {
+    exchange = $selectedExchange?.name || ''
+  }
   let routingKey = null
   let content = ''
   let argumentOne = {
@@ -26,7 +29,6 @@
   }
 
   function cancel() {
-    name = ''
     routingKey = null
     argumentOne = {
       key: '',
@@ -55,7 +57,7 @@
       headers[argumentThree.key] = argumentThree.value
     }
     const message = {
-      exchange: exchange.name,
+      exchange: exchange,
       routingKey: routingKey,
       body: content,
       headers: headers
@@ -79,7 +81,7 @@
             <div class="px-4 flex flex-col w-full">
               <label for="exchange" class="text-primary-300 text-xs pb-1">Exchange</label>
               <select class="w-full p-2 mb-4 bg-primary-800 rounded-md text-sm" placeholder="Select an Exchange"
-                     bind:value="{exchange.name}">
+                     bind:value="{exchange}">
                 {#each $exchanges as exchange}
                   <option value={exchange.name}>{exchange.name}</option>
                 {/each}
