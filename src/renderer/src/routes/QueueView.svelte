@@ -121,7 +121,7 @@
               class="text-xs font-light font-mono truncate text-primary-200"
               title={JSON.stringify(message.body)}
             >
-              <JsonBlock data={message.body} />
+              {JSON.stringify(message.body).substring(0, 300)}
             </div>
           </button>
         {/each}
