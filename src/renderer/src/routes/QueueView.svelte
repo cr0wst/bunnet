@@ -9,6 +9,7 @@
   import { Trash, Icon, BarsArrowUp, BarsArrowDown, Clipboard } from 'svelte-hero-icons'
   import { selectedExchange, selectedMessage, selectedQueue } from '../stores/ui'
   import type { Message, Queue } from '@common/types'
+  import { isValidJson } from '@common/utils'
 
 
   const api = window.api
@@ -146,7 +147,11 @@
               <div
                 class="group h-full w-full overflow-y-scroll whitespace-pre-wrap font-mono text-primary-100 json-wrap"
               >
-                <JsonView json={$selectedMessage.body} />
+                {#if $selectedMessage.body instanceof Object}
+                  <JsonView json={$selectedMessage.body} />
+                {:else}
+                  {$selectedMessage.body}
+                {/if}
                 <button
                   on:click="{() => copy(JSON.stringify($selectedMessage.body, null, 2))}"
                   class="absolute bottom-5 right-5 transition-opacity group-hover:opacity-75 opacity-0 duration-500 ease-in hover:scale-110">

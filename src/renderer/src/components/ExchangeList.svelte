@@ -4,6 +4,7 @@
   import { EyeSlash, Icon } from 'svelte-hero-icons'
   import { selectedExchange, selectedQueue } from '../stores/ui'
   import { queues } from '../stores/queues'
+  import PublishMessageButton from './PublishMessageButton.svelte'
 
   const api = window.api
 
@@ -42,7 +43,10 @@
 </script>
 
 <div class="bg-primary-900 w-1/5 flex flex-col">
-  <h2 class="text-primary-50 p-2 font-medium text-lg">Exchanges</h2>
+  <div class="flex justify-between items-center">
+    <h2 class="text-primary-50 p-2 font-medium text-lg">Exchanges</h2>
+    <PublishMessageButton/>
+  </div>
   {#each $exchanges.filter((e) => !e.hidden) as exchange}
     <button
       class="group bg-primary-700 p-2 border-b text-left border-b-primary-800 text-primary-200 hover:cursor-pointer hover:bg-primary-300 hover:text-primary-50 text-xs font-light transition-all flex justify-between"
