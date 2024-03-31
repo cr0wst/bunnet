@@ -5,13 +5,11 @@
   import { JsonView } from '@zerodevx/svelte-json-view'
   import { queues } from '../stores/queues'
   import { onDestroy, onMount } from 'svelte'
-  import AddQueueButton from '../components/queue-tabs/AddQueueButton.svelte'
-  import { Trash, Icon, BarsArrowUp, BarsArrowDown, Clipboard, XMark } from 'svelte-hero-icons'
-  import { selectedExchange, selectedMessage, selectedQueue } from '../stores/ui'
-  import type { Message, Queue } from '@common/types'
-  import { isValidJson } from '@common/utils'
-  import QueueTab from '../components/queue-tabs/QueueTab.svelte'
+
+  import { Icon, BarsArrowUp, BarsArrowDown, Clipboard } from 'svelte-hero-icons'
+  import { selectedExchange, selectedMessage, selectedQueue, unreadMessageQueues } from '../stores/ui'
   import QueueTabs from '../components/queue-tabs/QueueTabs.svelte'
+  import type { Message } from '@common/types'
 
 
   const api = window.api
@@ -37,9 +35,19 @@
   onMount(async () => {
     api.rabbit.onMessage((incoming: Message) => {
       // Only add the message if it belongs to the selected queue
-      if (incoming.queueId == $selectedQueue.id) {
+      if ($selectedQueue && incoming.queueId == $selectedQueue.id) {
         messages.update((value) => {
           return [incoming, ...value]
+        })
+      } else {
+        // If it doesn't belong to the selected queue, add the queue to the list of queues with
+        // unread messages
+        const incomingQueue = $queues.find((q) => q.id === incoming.queueId)
+        unreadMessageQueues.update((value) => {
+          if (value.some((v) => v.exchange === incomingQueue.exchange && v.queue === incomingQueue.id)) {
+            return value
+          }
+          return [...value, { exchange: incomingQueue.exchange, queue: incomingQueue.id }]
         })
       }
     })
@@ -70,7 +78,7 @@
   <!-- message section -->
   <div class="h-full w-4/5 bg-primary-800 flex flex-col">
     {#if $selectedExchange !== null}
-      <QueueTabs/>
+      <QueueTabs />
 
       <!-- message list -->
       <div class="w-full flex bg-primary-950 text-primary-50 text-xs font-light items-center">
