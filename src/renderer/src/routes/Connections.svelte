@@ -62,6 +62,10 @@
   }
 
   async function connectToRabbit(connection) {
+    // Disconnect from the current connection on the off chance we're still connected
+    if ($selectedConnection) {
+      await api.rabbit.disconnect()
+    }
     // Connect to the selected connection
     try {
       const state = await api.rabbit.connect(connection)
