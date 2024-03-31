@@ -5,6 +5,8 @@
 New Features:
 
 - Added the ability to publish messages to an Exchange.
+- Added notification dot to indicate when a non-visible queue/exchange has an unread message.
+- Some minor UI improvements.
 
 ## [1.1.0]
 
