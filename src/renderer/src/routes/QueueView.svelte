@@ -6,7 +6,7 @@
   import { queues } from '../stores/queues'
   import { onDestroy, onMount } from 'svelte'
   import AddQueueButton from '../components/AddQueueButton.svelte'
-  import { Trash, Icon, BarsArrowUp, BarsArrowDown, Clipboard } from 'svelte-hero-icons'
+  import { Trash, Icon, BarsArrowUp, BarsArrowDown, Clipboard, XMark } from 'svelte-hero-icons'
   import { selectedExchange, selectedMessage, selectedQueue } from '../stores/ui'
   import type { Message, Queue } from '@common/types'
   import { isValidJson } from '@common/utils'
@@ -82,17 +82,17 @@
       <div class="w-full h-8 bg-primary-600 overflow-x-scroll flex">
         {#each $queues.filter((q) => q.exchange === $selectedExchange.name) as queue}
           <button
-            class="w-64 h-full bg-primary-700 hover:bg-primary-500 hover:text-primary-50 hover:font-medium transition-all"
+            class="w-64 h-full bg-primary-700 hover:bg-primary-500 font-light hover:text-primary-50 transition-all"
             on:click={() => selectQueue(queue)}
             class:selected-queue={$selectedQueue === queue}
           >
             <div class="flex items-center justify-between px-2 h-full group">
-              <div class="text-primary-200 text-xs font-light">{queue.name}</div>
+              <div class="text-primary-200 text-xs">{queue.name}</div>
               <button
                 on:click={() => deleteQueue(queue)}
                 class="text-primary-200 text-xs font-extralight ml-2 group-hover:visible invisible transition-opacity"
               >
-                <Icon src={Trash} class="w-4 h-4" solid />
+                <Icon src={XMark} class="w-4 h-4" solid />
               </button
               >
             </div>
@@ -191,7 +191,7 @@
   }
 
   .selected-queue {
-    @apply bg-primary-800 text-primary-50 font-medium transition-all;
+    @apply bg-primary-800 text-primary-50 font-bold transition-all;
   }
 
   .fade-right-side {

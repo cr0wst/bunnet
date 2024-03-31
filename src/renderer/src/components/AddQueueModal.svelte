@@ -1,6 +1,6 @@
 {#if open}
   <div class="modal z-50 fixed w-full h-full top-0 left-0 flex items-center justify-center p-8 lg:p-0">
-    <div class="modal-overlay fixed w-full h-full bg-gray-900 opacity-50"></div>
+    <div class="modal-overlay fixed w-full h-full bg-black opacity-50"></div>
     <div class="z-50 bg-primary-700 text-primary-200 w-1/2 rounded-md">
       <div class="flex justify-between items-center p-4 font-light text-primary-300 text-sm">
         Add New Queue
