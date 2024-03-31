@@ -6,7 +6,7 @@ import QueueTab from './QueueTab.svelte'
 </script>
 
 
-<div class="w-full h-8 bg-primary-600 overflow-x-scroll flex">
+<div class="w-full h-8 bg-primary-900 overflow-x-scroll flex">
   {#each $queues.filter((q) => q.exchange === $selectedExchange.name) as queue}
     <QueueTab {queue}/>
   {/each}
