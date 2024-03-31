@@ -5,11 +5,13 @@
   import { JsonView } from '@zerodevx/svelte-json-view'
   import { queues } from '../stores/queues'
   import { onDestroy, onMount } from 'svelte'
-  import AddQueueButton from '../components/AddQueueButton.svelte'
+  import AddQueueButton from '../components/queue-tabs/AddQueueButton.svelte'
   import { Trash, Icon, BarsArrowUp, BarsArrowDown, Clipboard, XMark } from 'svelte-hero-icons'
   import { selectedExchange, selectedMessage, selectedQueue } from '../stores/ui'
   import type { Message, Queue } from '@common/types'
   import { isValidJson } from '@common/utils'
+  import QueueTab from '../components/queue-tabs/QueueTab.svelte'
+  import QueueTabs from '../components/queue-tabs/QueueTabs.svelte'
 
 
   const api = window.api
@@ -32,11 +34,6 @@
     selectedMessage.set(null)
   }
 
-  async function deleteQueue(queue) {
-    await api.rabbit.deleteQueue(queue)
-    $queues = $queues.filter((q) => q !== queue)
-  }
-
   onMount(async () => {
     api.rabbit.onMessage((incoming: Message) => {
       // Only add the message if it belongs to the selected queue
@@ -56,12 +53,6 @@
     api.rabbit.removeMessageListener()
   })
 
-  async function selectQueue(queue: Queue) {
-    $selectedQueue = queue
-    // load messages from main
-    messages.set(await api.rabbit.getMessages(queue.id) || [])
-  }
-
   let sortDirection = 'asc'
 
   function toggleMessageSort() {
@@ -79,29 +70,7 @@
   <!-- message section -->
   <div class="h-full w-4/5 bg-primary-800 flex flex-col">
     {#if $selectedExchange !== null}
-      <div class="w-full h-8 bg-primary-600 overflow-x-scroll flex">
-        {#each $queues.filter((q) => q.exchange === $selectedExchange.name) as queue}
-          <button
-            class="w-64 h-full bg-primary-700 hover:bg-primary-500 font-light hover:text-primary-50 transition-all"
-            on:click={() => selectQueue(queue)}
-            class:selected-queue={$selectedQueue === queue}
-          >
-            <div class="flex items-center justify-between px-2 h-full group">
-              <div class="text-primary-200 text-xs">{queue.name}</div>
-              <button
-                on:click={() => deleteQueue(queue)}
-                class="text-primary-200 text-xs font-extralight ml-2 group-hover:visible invisible transition-opacity"
-              >
-                <Icon src={XMark} class="w-4 h-4" solid />
-              </button
-              >
-            </div>
-          </button>
-        {/each}
-        {#if $selectedExchange}
-          <AddQueueButton />
-        {/if}
-      </div>
+      <QueueTabs/>
 
       <!-- message list -->
       <div class="w-full flex bg-primary-950 text-primary-50 text-xs font-light items-center">
@@ -188,10 +157,6 @@
 <style lang="postcss">
   .selected {
     @apply bg-primary-500 text-primary-50 font-medium transition-all;
-  }
-
-  .selected-queue {
-    @apply bg-primary-800 text-primary-50 font-bold transition-all;
   }
 
   .fade-right-side {

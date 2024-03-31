@@ -4,7 +4,7 @@
   import { EyeSlash, Icon } from 'svelte-hero-icons'
   import { selectedExchange, selectedMessage, selectedQueue } from '../stores/ui'
   import { queues } from '../stores/queues'
-  import PublishMessageButton from './PublishMessageButton.svelte'
+  import PublishMessageButton from './publish-message/PublishMessageButton.svelte'
   import { messages } from '../stores/message'
 
   const api = window.api
