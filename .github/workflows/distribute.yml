@@ -1,4 +1,8 @@
-on: [push]
+on:
+  release:
+    branches:
+      - main
+name: Distribute Electron Application
 jobs:
   distribute:
     runs-on: macOS-latest
