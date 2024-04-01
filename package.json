@@ -17,7 +17,7 @@
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:mac-prerelease": "npm run build && electron-builder --mac --universal --config -c.mac.identity=null",
-    "build:mac": "npm run build && electron-builder --mac --universal"
+    "build:mac": "npm run build && electron-builder --mac --universal --config -c.mac.notarize.teamId=${TEAM_ID}"
   },
   "dependencies": {
     "@cloudamqp/amqp-client": "^3.1.1",
