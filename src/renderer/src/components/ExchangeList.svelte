@@ -2,8 +2,10 @@
   import { exchanges } from '../stores/exchange'
   import type { Exchange } from '@common/types'
   import { EyeSlash, Icon } from 'svelte-hero-icons'
-  import { selectedExchange, selectedQueue } from '../stores/ui'
+  import { selectedExchange, selectedMessage, selectedQueue, unreadMessageQueues } from '../stores/ui'
   import { queues } from '../stores/queues'
+  import PublishMessageButton from './publish-message/PublishMessageButton.svelte'
+  import { messages } from '../stores/message'
 
   const api = window.api
 
@@ -36,20 +38,32 @@
   async function selectExchange(exchange: Exchange) {
     $selectedExchange = exchange
     $selectedQueue = $queues.find((q) => q.exchange === exchange.name)
+    $messages = []
+    $selectedMessage = null
+    unreadMessageQueues.update((queues) => {
+      return queues.filter((q) => q.queue !== $selectedQueue.id)
+    })
   }
 
   $: hiddenExchangeCount = $exchanges.filter((e) => e.hidden).length
 </script>
 
 <div class="bg-primary-900 w-1/5 flex flex-col">
-  <h2 class="text-primary-50 p-2 font-medium text-lg">Exchanges</h2>
+  <div class="flex justify-between items-center">
+    <h2 class="text-primary-50 p-2 font-medium text-lg">Exchanges</h2>
+    <PublishMessageButton />
+  </div>
   {#each $exchanges.filter((e) => !e.hidden) as exchange}
     <button
-      class="group bg-primary-700 p-2 border-b text-left border-b-primary-800 text-primary-200 hover:cursor-pointer hover:bg-primary-300 hover:text-primary-50 text-xs font-light transition-all flex justify-between"
+      class="relative group bg-primary-700 p-2 border-b text-left border-b-primary-800 text-primary-200 hover:cursor-pointer hover:bg-primary-300 hover:text-primary-50 text-xs font-light transition-all flex justify-between"
       on:click={() => selectExchange(exchange)}
       class:selected={$selectedExchange === exchange}
     >
-      {exchange.name}
+      {#if $unreadMessageQueues.some((q) => q.exchange === exchange.name)}
+        <span
+          class="block w-2 aspect-square bg-orange-400 rounded-full z-50 absolute left-[-4px] top-1/2 mt-[-4px]"></span>
+      {/if}
+      <div class="pl-2">{exchange.name}</div>
       <button on:click={() => hideExchange(exchange)}>
         <Icon src="{EyeSlash}" class="w-4 h-4 invisible group-hover:visible" />
       </button>

@@ -4,6 +4,7 @@ import { ulid } from 'ulid'
 import axios from 'axios'
 
 import { MessageStore } from './messageStore'
+import { isValidJson } from '../common/utils'
 
 const messageStore = new MessageStore()
 
@@ -89,7 +90,7 @@ export class RabbitConnection {
         timestamp: message.properties.timestamp || new Date(),
         queueId: queueConfig.id,
         headers: message.properties.headers,
-        body: this.isValidJson(message.bodyString() || '')
+        body: isValidJson(message.bodyString() || '')
           ? JSON.parse(message.bodyString() || '{}')
           : message.bodyString()
       }
@@ -98,15 +99,6 @@ export class RabbitConnection {
     })
 
     return queueConfig
-  }
-
-  private isValidJson(str: string) {
-    try {
-      JSON.parse(str)
-    } catch (e) {
-      return false
-    }
-    return true
   }
 
   public async deleteQueue(queue: Queue) {
@@ -142,6 +134,15 @@ export class RabbitConnection {
       throw new Error('Exchange not found')
     }
     existingExchange.hidden = false
+  }
+
+  public async publish(message: any) {
+    if (!this.channel) {
+      throw new Error('Channel not connected')
+    }
+
+    const properties = (message.headers) ? { headers: message.headers } : {}
+    await this.channel.basicPublish(message.exchange, message.routingKey || '', message.body, properties)
   }
 
   public getState() {

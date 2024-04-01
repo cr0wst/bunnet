@@ -23,7 +23,8 @@ declare global {
         deleteQueue(queue: Queue): Promise<void>
         onMessage(callback: (message: Message) => void): void
         removeMessageListener(): void
-        getMessages(queueId: string | undefined): Promise<Message[]>
+        getMessages(queueId: string | undefined): Promise<Message[]>,
+        publish(message: any): Promise<void>
       }
     }
   }

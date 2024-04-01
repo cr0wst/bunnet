@@ -1,0 +1,23 @@
+on:
+  release:
+    branches:
+      - main
+name: Distribute Electron Application
+jobs:
+  distribute:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: npm install
+      - name: Build and Release Application
+        run: npm run build:mac
+        env:
+          APPLE_ID: "${{ secrets.apple_id }}"
+          APPLE_APP_SPECIFIC_PASSWORD: "${{ secrets.apple_app_specific_password }}"
+          CSC_LINK: "${{ secrets.mac_certs }}"
+          CSC_KEY_PASSWORD: "${{ secrets.mac_certs_password }}"
+          TEAM_ID: "${{ secrets.team_id }}"

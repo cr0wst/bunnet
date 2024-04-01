@@ -45,6 +45,9 @@ const api = {
     async getMessages(queueId: string | undefined) {
       return await electronAPI.ipcRenderer.invoke('rabbit-get-messages', queueId)
     },
+    async publish(message: any) {
+      return await electronAPI.ipcRenderer.invoke('rabbit-publish', message)
+    },
     onMessage: (callback) =>
       electronAPI.ipcRenderer.on('rabbit-message-received', (_, args) => {
         callback(args)

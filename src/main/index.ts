@@ -162,3 +162,11 @@ ipcMain.handle('rabbit-exchange-unhide', async (_, exchange) => {
 
   return rabbitConnection.unhideExchange(exchange)
 })
+
+ipcMain.handle('rabbit-publish', async (_, message) => {
+  if (!rabbitConnection) {
+    throw new Error('Not connected to RabbitMQ')
+  }
+
+  return rabbitConnection.publish(message)
+})
