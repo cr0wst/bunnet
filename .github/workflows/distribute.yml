@@ -1,7 +1,7 @@
 on:
-  release:
-    branches:
-      - main
+  push:
+    tags:
+      - 'v*.*.*'
 name: Distribute Electron Application
 jobs:
   distribute:
@@ -21,3 +21,4 @@ jobs:
           CSC_LINK: "${{ secrets.mac_certs }}"
           CSC_KEY_PASSWORD: "${{ secrets.mac_certs_password }}"
           TEAM_ID: "${{ secrets.team_id }}"
+          GH_TOKEN: "${{ secrets.gh_token }}"
