@@ -16,7 +16,7 @@ export class RabbitConnection {
 
   constructor(private connection: Connection) {
     this.client = new AMQPClient(
-      `${connection.useSsl ? 'amqps' : 'amqp'}://${connection.username}:${connection.password}@${connection.url}:${connection.port}${connection.vhost}`
+      `${connection.useSsl ? 'amqps' : 'amqp'}://${connection.username}:${connection.password}@${connection.url}:${connection.port}${connection.vhost}?heartbeat=10`
     )
   }
 
@@ -37,11 +37,9 @@ export class RabbitConnection {
   }
 
   public async listExchanges() {
-    // Attempt to use the RabbitMQ Management Plugin to list exchanges.
-    // If this fails, we'll have to require the user specify them.
-
     const url = `${this.connection.useSsl ? 'https' : 'http'}://${this.connection.url}:${this.connection.managementPort}/api/exchanges`
     const response = await axios.get(url, {
+      validateStatus: (status) => status === 200,
       auth: {
         username: this.connection.username,
         password: this.connection.password
@@ -110,7 +108,7 @@ export class RabbitConnection {
     this.queues = this.queues.filter((q) => q.id !== queue.id)
   }
 
-  public async loadState(state: { queues: Queue[], exchanges: Exchange[] }) {
+  public async loadState(state: { queues: Queue[]; exchanges: Exchange[] }) {
     for (const queue of state.queues) {
       await this.createQueue(queue)
     }
@@ -141,8 +139,13 @@ export class RabbitConnection {
       throw new Error('Channel not connected')
     }
 
-    const properties = (message.headers) ? { headers: message.headers } : {}
-    await this.channel.basicPublish(message.exchange, message.routingKey || '', message.body, properties)
+    const properties = message.headers ? { headers: message.headers } : {}
+    await this.channel.basicPublish(
+      message.exchange,
+      message.routingKey || '',
+      message.body,
+      properties
+    )
   }
 
   public getState() {
@@ -152,4 +155,3 @@ export class RabbitConnection {
     }
   }
 }
-

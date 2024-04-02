@@ -18,17 +18,30 @@ const api = {
     },
     async delete(id: string) {
       return await electronAPI.ipcRenderer.invoke('connection-delete', id)
-    },
+    }
   },
   rabbit: {
     async connect(options: RabbitOptions) {
-      return await electronAPI.ipcRenderer.invoke('rabbit-connect', options)
+      const response = await electronAPI.ipcRenderer.invoke('rabbit-connect', options)
+
+      if (response?.error)
+        throw new Error(
+          `Unable to establish a connection to Rabbit. Reason: ${response.error.reason}`
+        )
+      return response
     },
     async disconnect() {
       return await electronAPI.ipcRenderer.invoke('rabbit-disconnect')
     },
     async listExchanges() {
-      return await electronAPI.ipcRenderer.invoke('rabbit-list-exchanges')
+      const response = await electronAPI.ipcRenderer.invoke('rabbit-list-exchanges')
+      if (response?.error) {
+        throw new Error(
+          `Unable to list exchanges, verify that your management port is correct. Reason: ${response.error.reason}`
+        )
+      }
+
+      return response
     },
     async hideExchange(exchange: Exchange) {
       return await electronAPI.ipcRenderer.invoke('rabbit-exchange-hide', exchange)
@@ -37,7 +50,11 @@ const api = {
       return await electronAPI.ipcRenderer.invoke('rabbit-exchange-unhide', exchange)
     },
     async addQueue(name: string, exchange: string, bindOptions: any) {
-      return await electronAPI.ipcRenderer.invoke('rabbit-add-queue', { name, exchange, bindOptions })
+      return await electronAPI.ipcRenderer.invoke('rabbit-add-queue', {
+        name,
+        exchange,
+        bindOptions
+      })
     },
     async deleteQueue(queue: Queue) {
       return await electronAPI.ipcRenderer.invoke('rabbit-delete-queue', queue)
@@ -52,7 +69,8 @@ const api = {
       electronAPI.ipcRenderer.on('rabbit-message-received', (_, args) => {
         callback(args)
       }),
-    removeMessageListener: () => electronAPI.ipcRenderer.removeAllListeners('rabbit-message-received')
+    removeMessageListener: () =>
+      electronAPI.ipcRenderer.removeAllListeners('rabbit-message-received')
   }
 }
 

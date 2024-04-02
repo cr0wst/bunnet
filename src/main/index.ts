@@ -8,6 +8,7 @@ import { RabbitConnection } from './rabbit'
 import appConfig from 'electron-settings'
 
 import { updateElectronApp } from 'update-electron-app'
+import { AMQPError } from '@cloudamqp/amqp-client'
 
 updateElectronApp()
 const windowStateManager = new WindowStateManager('main')
@@ -109,14 +110,36 @@ ipcMain.handle('connection-delete', (_, id) => {
 
 ipcMain.handle('rabbit-connect', async (_, options) => {
   rabbitConnection = new RabbitConnection(options)
-  await rabbitConnection.connect()
+  try {
+    await rabbitConnection.connect()
 
-  if (appConfig.hasSync(`rabbitConnection.${rabbitConnection.getConnection().id}`)) {
-    const state: any = appConfig.getSync(`rabbitConnection.${rabbitConnection.getConnection().id}`)
-    return await rabbitConnection.loadState(state)
+    if (appConfig.hasSync(`rabbitConnection.${rabbitConnection.getConnection().id}`)) {
+      const state: any = appConfig.getSync(
+        `rabbitConnection.${rabbitConnection.getConnection().id}`
+      )
+      return await rabbitConnection.loadState(state)
+    }
+
+    return rabbitConnection.getState()
+  } catch (e: any) {
+    rabbitConnection = null
+    const error = {
+      message: 'Unable to establish a connection.',
+      reason: e.message
+    }
+    if (e instanceof AMQPError) {
+      switch (e.message) {
+        case 'timeout':
+          error.reason = 'Connection timed out.'
+          break
+        default:
+          error.reason = e.message
+          break
+      }
+    }
+
+    return { error }
   }
-
-  return rabbitConnection.getState()
 })
 
 ipcMain.handle('rabbit-disconnect', async () => {
@@ -137,7 +160,16 @@ ipcMain.handle('rabbit-list-exchanges', async (_) => {
     throw new Error('Not connected to RabbitMQ')
   }
 
-  return await rabbitConnection.listExchanges()
+  try {
+    return await rabbitConnection.listExchanges()
+  } catch (e: any) {
+    return {
+      error: {
+        message: 'Unable to list exchanges',
+        reason: e.message
+      }
+    }
+  }
 })
 
 ipcMain.handle('rabbit-add-queue', async (_, { name, exchange, bindOptions }) => {
