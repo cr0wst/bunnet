@@ -1,11 +1,12 @@
 {
   "name": "bunnet",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A simple RabbitMQ client for developers",
   "main": "./out/main/index.js",
   "author": "Steve Crow dev@bunnetapp.com",
   "homepage": "https://bunnetapp.com",
   "license": "GPL-3.0-or-later",
+  "repository": "github:cr0wst/bunnet",
   "scripts": {
     "format": "prettier --plugin prettier-plugin-svelte --write .",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
@@ -26,7 +27,8 @@
     "@zerodevx/svelte-json-view": "^1.0.9",
     "axios": "^1.6.8",
     "electron-settings": "^4.0.2",
-    "electron-updater": "^6.1.7"
+    "electron-updater": "^6.1.7",
+    "update-electron-app": "^3.0.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",

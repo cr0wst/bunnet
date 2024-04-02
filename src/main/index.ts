@@ -7,6 +7,9 @@ import { WindowStateManager } from './WindowStateManager'
 import { RabbitConnection } from './rabbit'
 import appConfig from 'electron-settings'
 
+import { updateElectronApp } from 'update-electron-app'
+
+updateElectronApp()
 const windowStateManager = new WindowStateManager('main')
 
 let rabbitConnection: RabbitConnection | null = null
@@ -50,7 +53,10 @@ function createWindow(): void {
   // Save all of the details for the connection
   mainWindow.on('close', () => {
     if (rabbitConnection) {
-      appConfig.setSync(`rabbitConnection.${rabbitConnection.getConnection().id}`, rabbitConnection.getState())
+      appConfig.setSync(
+        `rabbitConnection.${rabbitConnection.getConnection().id}`,
+        rabbitConnection.getState()
+      )
     }
   })
 }
@@ -119,7 +125,10 @@ ipcMain.handle('rabbit-disconnect', async () => {
   }
 
   await rabbitConnection.disconnect()
-  appConfig.setSync(`rabbitConnection.${rabbitConnection.getConnection().id}`, rabbitConnection.getState())
+  appConfig.setSync(
+    `rabbitConnection.${rabbitConnection.getConnection().id}`,
+    rabbitConnection.getState()
+  )
   rabbitConnection = null
 })
 
